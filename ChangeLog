@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.7.0 branch released 2018-01-09
 
 Security
    * Fix buffer overflow in RSA-PSS verification when the hash is too
