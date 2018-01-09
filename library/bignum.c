@@ -96,6 +96,8 @@ void mbedtls_mpi_free( mbedtls_mpi *X )
     X->p = NULL;
 }
 
+#include <FreeRTOS.h>
+#include <task.h>
 /*
  * Enlarge to the specified number of limbs
  */
@@ -105,18 +107,24 @@ int mbedtls_mpi_grow( mbedtls_mpi *X, size_t nblimbs )
 
     if( nblimbs > MBEDTLS_MPI_MAX_LIMBS )
         return( MBEDTLS_ERR_MPI_ALLOC_FAILED );
-
-    if( X->n < nblimbs )
+//printf("heap %u stack %lu %d %d \n", xPortGetFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL), X->n, nblimbs);
+    if( X->n < nblimbs)
     {
-        if( ( p = mbedtls_calloc( nblimbs, ciL ) ) == NULL )
+        //printf("heap %u stack %lu %d %d \n", xPortGetFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL), X->n, nblimbs);
+	if ((p = realloc(X->p, nblimbs * ciL)) == NULL)
+        //if( ( p = mbedtls_calloc( nblimbs, ciL ) ) == NULL )
             return( MBEDTLS_ERR_MPI_ALLOC_FAILED );
 
+	//mbedtls_zeroize(p + X->n * ciL, nblimbs * ciL - X->n * ciL);
         if( X->p != NULL )
         {
-            memcpy( p, X->p, X->n * ciL );
-            mbedtls_zeroize( X->p, X->n * ciL );
-            mbedtls_free( X->p );
-        }
+mbedtls_zeroize((char*)(p) + X->n * ciL, nblimbs * ciL - X->n * ciL);
+            //memcpy( p, X->p, X->n * ciL );
+            //mbedtls_zeroize( X->p, X->n * ciL );
+            //mbedtls_free( X->p );
+        } else {
+mbedtls_zeroize(p, nblimbs * ciL);
+}
 
         X->n = nblimbs;
         X->p = p;
@@ -146,15 +154,17 @@ int mbedtls_mpi_shrink( mbedtls_mpi *X, size_t nblimbs )
     if( i < nblimbs )
         i = nblimbs;
 
-    if( ( p = mbedtls_calloc( i, ciL ) ) == NULL )
+
+//    if( ( p = mbedtls_calloc( i, ciL ) ) == NULL )
+if ((p = realloc(X->p, i * ciL)) == NULL)
         return( MBEDTLS_ERR_MPI_ALLOC_FAILED );
 
-    if( X->p != NULL )
-    {
-        memcpy( p, X->p, i * ciL );
-        mbedtls_zeroize( X->p, X->n * ciL );
-        mbedtls_free( X->p );
-    }
+//    if( X->p != NULL )
+//    {
+//        memcpy( p, X->p, i * ciL );
+//        mbedtls_zeroize( X->p, X->n * ciL );
+//        mbedtls_free( X->p );
+//    }
 
     X->n = i;
     X->p = p;

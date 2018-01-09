@@ -54,6 +54,8 @@
 #define mbedtls_free       free
 #endif
 
+#include <stdio.h>
+
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
@@ -2358,13 +2360,13 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "in_left: %d, nb_want: %d",
                        ssl->in_left, nb_want ) );
-
         while( ssl->in_left < nb_want )
         {
             len = nb_want - ssl->in_left;
 
-            if( ssl_check_timer( ssl ) != 0 )
+            if( ssl_check_timer( ssl ) != 0 ){
                 ret = MBEDTLS_ERR_SSL_TIMEOUT;
+}
             else
             {
                 if( ssl->f_recv_timeout != NULL )
@@ -3504,7 +3506,6 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl )
 
         MBEDTLS_SSL_DEBUG_BUF( 4, "remaining content in record",
                            ssl->in_msg, ssl->in_msglen );
-
         if( ( ret = ssl_prepare_handshake_record( ssl ) ) != 0 )
             return( ret );
 
@@ -3524,7 +3525,6 @@ read_record_header:
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_fetch_input", ret );
         return( ret );
     }
-
     if( ( ret = ssl_parse_record_header( ssl ) ) != 0 )
     {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -3542,7 +3542,6 @@ read_record_header:
 #endif
         return( ret );
     }
-
     /*
      * Read and optionally decrypt the message contents
      */
@@ -3560,7 +3559,6 @@ read_record_header:
     else
 #endif
         ssl->in_left = 0;
-
     if( ( ret = ssl_prepare_record_content( ssl ) ) != 0 )
     {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -3663,8 +3661,9 @@ read_record_header:
      */
     if( ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE )
     {
-        if( ( ret = ssl_prepare_handshake_record( ssl ) ) != 0 )
+        if( ( ret = ssl_prepare_handshake_record( ssl ) ) != 0 ){
             return( ret );
+}
     }
 
     if( ssl->in_msgtype == MBEDTLS_SSL_MSG_ALERT )
@@ -3689,7 +3688,6 @@ read_record_header:
             return( MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY );
         }
     }
-
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= read record" ) );
 
     return( 0 );
@@ -6298,8 +6296,9 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
 
             /* If a non-handshake record was read during renego, fallthrough,
              * else tell the user they should call mbedtls_ssl_read() again */
-            if( ! record_read )
+            if( ! record_read ){
                 return( MBEDTLS_ERR_SSL_WANT_READ );
+}
         }
         else if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_PENDING )
         {
@@ -6333,8 +6332,9 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
 
         /* We're going to return something now, cancel timer,
          * except if handshake (renegotiation) is in progress */
-        if( ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER )
+        if( ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER ) {
             ssl_set_timer( ssl, 0 );
+}
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
         /* If we requested renego but received AppData, resend HelloRequest.
@@ -6356,7 +6356,6 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
 
     n = ( len < ssl->in_msglen )
         ? len : ssl->in_msglen;
-
     memcpy( buf, ssl->in_offt, n );
     ssl->in_msglen -= n;
 
@@ -6368,7 +6367,6 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
         ssl->in_offt += n;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= read" ) );
-
     return( (int) n );
 }
 

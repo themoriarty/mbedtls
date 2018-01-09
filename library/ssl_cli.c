@@ -47,6 +47,8 @@
 #include <time.h>
 #endif
 
+#include <stdio.h>
+
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
@@ -2964,7 +2966,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
         ssl->state = MBEDTLS_SSL_SERVER_NEW_SESSION_TICKET;
     }
 #endif
-
+printf("SSL state %d\n", ssl->state);
     switch( ssl->state )
     {
         case MBEDTLS_SSL_HELLO_REQUEST:
@@ -3021,7 +3023,9 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
            break;
 
        case MBEDTLS_SSL_CERTIFICATE_VERIFY:
+printf("cert verify\n");
            ret = ssl_write_certificate_verify( ssl );
+printf("cert verify done\n");
            break;
 
        case MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC:
